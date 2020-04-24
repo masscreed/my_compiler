@@ -253,7 +253,50 @@ int analysis_row(string source_string, int line_in_file)
 				}
 				else
 				{
-					buffer_str = source_string[i];	
+					if(i + 1 < str_length && source_string[i] == '-' && is_digit(source_string[i+1]))
+					{
+						i++;
+						position_in_str++;
+						buffer_str = "-";
+						char has_point = 0;
+						while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i]) || source_string[i] == '.' ) && !number_error)
+						{
+							if(is_digit(source_string[i]))
+							{
+								buffer_str += source_string[i];
+								i++;
+								position_in_str++;
+							}
+							else if(is_letter(source_string[i]))
+							{
+								number_error = 1;
+							}
+							else if(source_string[i] == '.')
+							{
+								if(has_point)
+								{
+									buffer_str += source_string[i];
+									i++;
+									position_in_str++;
+									number_error = 1;
+								}
+								else
+								{
+									
+									buffer_str += source_string[i];
+									i++;
+									position_in_str++;
+									
+									has_point = 1;
+								}
+							}
+						}
+						i--;
+						position_in_str--;
+						type_date = this_digit;
+					}
+					else
+						buffer_str = source_string[i];	
 				}
 				break;
 			}
@@ -285,8 +328,9 @@ int analysis_row(string source_string, int line_in_file)
 				break;
 			}
 			case this_digit:
-			{		
-				while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i])) && !number_error)
+			{	
+				char has_point = 0;
+				while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i]) || source_string[i] == '.') && !number_error)
 				{
 					if(is_digit(source_string[i]))
 					{
@@ -297,6 +341,23 @@ int analysis_row(string source_string, int line_in_file)
 					else if(is_letter(source_string[i]))
 					{
 						number_error = 1;
+					}
+					else if(source_string[i] == '.')
+					{
+						if(has_point)
+						{
+							buffer_str += source_string[i];
+							i++;
+							position_in_str++;
+							number_error = 1;
+						}
+						else
+						{
+							buffer_str += source_string[i];
+							i++;
+							position_in_str++;
+							has_point = 1;
+						}
 					}
 				}
 				i--;
