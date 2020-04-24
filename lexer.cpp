@@ -1,0 +1,407 @@
+#include <iostream> 
+#include <fstream>
+#include <string>
+#include "lexer.h"
+#include "catch.hpp"
+
+using namespace std;
+
+char options_compilier;
+
+
+char equal_str(string s1, char s2[])
+{
+	int i;
+	int length_s1 = s1.length();
+	for(i = 0; s2[i] != '\0'; i++);
+	int length_s2 = i;
+	if(length_s2 == length_s1)
+	{
+		for(i = 0; i < length_s1; i++)
+		{
+			if(s1[i] != s2[i])
+				return 0;
+				
+		}
+	}
+	else
+		return 0;
+	return 1;
+}
+
+int find_in_tokens(string token)
+{
+	int i = 0, result = 0;
+	for(i = 0; i < 150 && !result; i++)
+	{
+		result = equal_str(token, token_name[i]);
+		if(result)
+			return i;
+	}
+	return -1;
+}
+
+bool is_letter(char c)
+{
+	if( c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'|| c == '_')
+		return true;
+	return false;
+}
+
+bool is_operator(char c)
+{
+	if( ('+' == c) || ('-' == c) ||
+		('*' == c) || ('/' == c) ||
+		('^' == c) || ('<' == c) ||
+		('>' == c) || ('=' == c) ||
+		(',' == c) || ('!' == c) ||
+		('(' == c) || (')' == c) ||
+		('[' == c) || (']' == c) ||
+		('{' == c) || ('}' == c) ||
+		('%' == c) || (':' == c) ||
+		('?' == c) || ('&' == c) ||
+		('|' == c) || (';' == c))
+		return true;
+	return false;
+}
+bool is_digit(char c)
+{
+	if(c >= '0' && c <= '9')
+		return true;
+	return false;
+}
+
+char type_char(const char c)
+  {
+	if( ('+' == c) || ('-' == c) ||
+		('*' == c) || ('/' == c) ||
+		('^' == c) || ('<' == c) ||
+		('>' == c) || ('=' == c) ||
+		(',' == c) || ('!' == c) ||
+		('(' == c) || (')' == c) ||
+		('[' == c) || (']' == c) ||
+		('{' == c) || ('}' == c) ||
+		('%' == c) || (':' == c) ||
+		('?' == c) || ('&' == c) ||
+		('|' == c) || (';' == c))
+		return this_operator;
+	else if( c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
+		return this_letter;
+	else if( c == '_')
+		return this_literal;
+	else if(c >= '0' && c <= '9')
+		return this_digit;
+	
+	return this_composite_operator;
+  }
+
+int analysis_row(string source_string, int line_in_file)
+{
+	int str_length = source_string.length();
+	int position_in_str = 1, i;
+	int position_begin_word;
+	int number_token;
+	string buffer_str, buffer_str_2;
+	char str_error, number_error;
+	int type_date;
+	
+	for(i = 0; i < str_length; i++)
+	{
+		while((source_string[i] == ' ' || source_string[i] == '\t') && i < str_length)
+		{
+			if(source_string[i] == ' ')
+			{
+				position_in_str++;
+			}
+			else if(source_string[i] == '\t')
+			{
+				position_in_str += 4;
+			}
+			i++;
+			
+		}
+		str_error = 0;
+		number_error = 0;
+		buffer_str = "";
+		buffer_str_2 = "";
+		position_begin_word = position_in_str;
+		number_token = -1; 
+		type_date = type_char(source_string[i]);
+	//	cout<< "type date    "<< type_date<< endl;
+		switch(type_date)
+		{
+			case this_composite_operator: 
+			{
+				if(source_string[i] == '"')
+				{
+					i++;
+					position_in_str++;
+					buffer_str = "\"\"";
+					buffer_str_2 += '"';
+					while(source_string[i] != '"' && i < str_length)
+					{
+						buffer_str_2 += source_string[i];
+						i++;
+						position_in_str++;
+					}
+					if(i>= str_length)
+					{
+						str_error = 1;
+					}
+					else
+					{
+						buffer_str_2 += '"';
+					}
+				}
+				else if(source_string[i] == 39) // '''
+				{
+					buffer_str = "''";
+					
+					buffer_str_2 += 39;
+					if(i + 2 < str_length && source_string[i + 2] == 39)
+					{
+						buffer_str_2 += source_string[i+1];
+						buffer_str_2 += source_string[i+2];
+						position_in_str += 2;
+						i += 2;
+						//cout<< "stringa ^"<< buffer_str_2<< endl;
+					}
+					else
+					{
+						str_error = 1;
+					}
+				}
+				else if(i + 1 < str_length && source_string[i] == '.' && source_string[i+1] == '.')
+				{
+					buffer_str = "..";
+					i++;
+					position_in_str++;
+				}
+				else if(source_string[i] == '.' )
+				{
+					buffer_str = ".";
+				}					
+				break;
+			}
+			case this_operator: 
+			{
+				if(i + 1 < str_length && is_operator(source_string[i+1]))
+				{
+					char has_cange = 0;
+					if(source_string[i] == ':' && source_string[i+1] == ':')
+					{
+						buffer_str = "::";
+						has_cange = 1;
+					}
+					else if(source_string[i] == '>' && source_string[i+1] == '=')
+					{
+						has_cange = 1;
+						buffer_str = ">=";
+					}
+					else if(source_string[i] == '<' && source_string[i+1] == '=')
+					{
+						has_cange = 1;
+						buffer_str = "<=";
+					}
+					else if(source_string[i] == '=' && source_string[i+1] == '=')
+					{
+						has_cange = 1;
+						buffer_str = "==";
+					}
+					else if(source_string[i] == '&' && source_string[i+1] == '&')
+					{
+						has_cange = 1;
+						buffer_str = "&&";
+					}
+					else if(source_string[i] == '|' && source_string[i+1] == '|')
+					{
+						has_cange = 1;
+						buffer_str = "||";
+					}
+					else if(source_string[i] == '<' && source_string[i+1] == '<')
+					{
+						has_cange = 1;
+						buffer_str = "<<";
+					}
+					else if(source_string[i] == '>' && source_string[i+1] == '>')
+					{
+						has_cange = 1;
+						buffer_str = ">>";
+					}
+					else if(source_string[i] == '/' && source_string[i+1] == '/')
+					{
+						has_cange = 2;
+						buffer_str = "//";
+						while(i < str_length)
+						{
+							buffer_str_2 += source_string[i];
+							i++;
+						}
+					}
+					else if(source_string[i] == '-' && source_string[i+1] == '>')
+					{
+						has_cange = 1;
+						buffer_str = "->";
+					}
+					if(has_cange == 1)
+					{
+						i++;
+						position_in_str++;
+					}
+					else if(has_cange != 2)
+						buffer_str = source_string[i];	
+				}
+				else
+				{
+					buffer_str = source_string[i];	
+				}
+				break;
+			}
+			case this_letter:
+			{
+				while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i])))
+				{
+					buffer_str += source_string[i];
+					i++;
+					position_in_str++;
+				}
+				i--;
+				position_in_str--;
+				break;
+			}
+			case this_literal:
+			{	
+				buffer_str += source_string[i];
+				i++;
+				position_in_str++;
+				while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i])))
+				{
+					buffer_str += source_string[i];
+					i++;
+					position_in_str++;
+				}
+				i--;
+				position_in_str--;
+				break;
+			}
+			case this_digit:
+			{		
+				while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i])) && !number_error)
+				{
+					if(is_digit(source_string[i]))
+					{
+						buffer_str += source_string[i];
+						i++;
+						position_in_str++;
+					}
+					else if(is_letter(source_string[i]))
+					{
+						number_error = 1;
+					}
+				}
+				i--;
+				position_in_str--;
+				break;
+			}
+		}
+		
+		//	cout<< buffer_str<< "     "<<find_in_tokens(buffer_str) <<endl;
+		switch(type_date)
+		{
+			case this_composite_operator:
+			{
+				if(buffer_str[0] == '"' && buffer_str[1] == '"')
+				{
+					if(str_error)
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ERROR \" string not closed: token -> '" <<buffer_str_2 <<"'" << endl;
+					else
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> string: token -> '" <<buffer_str_2 <<"'" << endl;
+				}
+				else if(buffer_str == "''")
+				{
+					if(str_error)
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ' not closed: token -> '" <<buffer_str_2 <<"'" <<endl;
+					else
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> simbol: token -> '" <<buffer_str_2 <<"'" << endl;
+				}
+				else if(buffer_str[0] == '.')
+				{
+					number_token = find_in_tokens(buffer_str);
+					if(number_token == -1)
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> unknown: token -> '" <<buffer_str<<"'" << endl;
+					else
+					{
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : token -> '" <<buffer_str<<"'" << endl;
+					}
+				}
+					
+				break;
+			}
+			case this_digit:
+			{
+				if(number_error)
+					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> error number: token -> '" <<buffer_str<<"'" << endl;
+				else
+					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> number: token -> '" <<buffer_str<<"'" << endl;
+				break;
+			}
+			case this_letter:
+			{
+				number_token = find_in_tokens(buffer_str);
+				if(number_token == -1)
+					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> literal: token -> '" <<buffer_str<<"'" << endl;
+				else
+				{
+					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : token -> '" <<buffer_str<<"'" << endl;
+				}
+				break;
+			}
+			case this_literal:
+			{
+				cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> Literal: token -> '" <<buffer_str<<"'" << endl;
+				break;
+			}
+			case this_operator: 
+			{
+				if(buffer_str == "//")
+					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> comment: token -> '" <<buffer_str_2<<"'" << endl;
+				else
+				{
+					number_token = find_in_tokens(buffer_str);
+					if(number_token == -1)
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> unknown: token -> '" <<buffer_str<<"'" << endl;
+					else
+					{
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : token -> '" <<buffer_str<<"'" << endl;
+					}
+				}
+				break;
+			}
+		}
+			
+		
+		position_in_str++;
+	}
+
+	return 0;
+}
+
+int main(int argc, char *argv[]) 
+{
+	string source_string;
+    ifstream in_file("test.rs");
+   
+	char read_char;
+	options_compilier = 0;
+	int line_in_file = 1;
+	
+	while(getline(in_file, source_string))
+	{
+		source_string = source_string + read_char;	
+		analysis_row(source_string, line_in_file);
+		source_string = "";
+		line_in_file++;
+	}
+	
+}
+
