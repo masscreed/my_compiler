@@ -57,9 +57,24 @@ bool is_operator(char c)
 		return true;
 	return false;
 }
+
 bool is_digit(char c)
 {
 	if(c >= '0' && c <= '9')
+		return true;
+	return false;
+}
+
+bool is_hexadecimal(char c)
+{
+	if(c >= '0' && c <= '9' || c >= 'a' && c <= 'f')
+		return true;
+	return false;
+}
+
+bool is_octal(char c)
+{
+	if(c >= '0' && c <= '7')
 		return true;
 	return false;
 }
@@ -97,6 +112,7 @@ int analysis_row(string source_string, int line_in_file)
 	string buffer_str, buffer_str_2;
 	char str_error, number_error;
 	int type_date;
+	char error_comment = 0;
 	
 	for(i = 0; i < str_length; i++)
 	{
@@ -120,7 +136,6 @@ int analysis_row(string source_string, int line_in_file)
 		position_begin_word = position_in_str;
 		number_token = -1; 
 		type_date = type_char(source_string[i]);
-	//	cout<< "type date    "<< type_date<< endl;
 		switch(type_date)
 		{
 			case this_composite_operator: 
@@ -157,7 +172,6 @@ int analysis_row(string source_string, int line_in_file)
 						buffer_str_2 += source_string[i+2];
 						position_in_str += 2;
 						i += 2;
-						//cout<< "stringa ^"<< buffer_str_2<< endl;
 					}
 					else
 					{
@@ -230,6 +244,31 @@ int analysis_row(string source_string, int line_in_file)
 							buffer_str_2 += source_string[i];
 							i++;
 						}
+					}
+					else if(source_string[i] == '/' && source_string[i+1] == '*')
+					{
+						error_comment = 0;
+						char flag = 1;
+						has_cange = 2;
+						buffer_str = "/**/";
+						while(i < str_length && flag)
+						{
+							if(source_string[i] == '*' && i + 1 < str_length  && source_string[i+1] == '/')
+							{
+								buffer_str_2 += "*/";
+								flag = 0;
+							}
+							else
+							{
+								buffer_str_2 += source_string[i];
+								
+							}
+							i++;
+							position_in_str++;
+						}
+						if(flag == 1)
+							error_comment = 1;
+						
 					}
 					else if(source_string[i] == '-' && source_string[i+1] == '>')
 					{
@@ -322,44 +361,99 @@ int analysis_row(string source_string, int line_in_file)
 			}
 			case this_digit:
 			{	
-				char has_point = 0;
-				while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i]) || source_string[i] == '.') && !number_error)
+				if(i + 1 < str_length && source_string[i] == '0' && (is_digit(source_string[i+1]) || is_letter(source_string[i+1])) )
 				{
-					if(is_digit(source_string[i]))
+					buffer_str += source_string[i];
+					i++;
+					position_in_str++;
+					if(source_string[i] == 'x')
 					{
 						buffer_str += source_string[i];
 						i++;
 						position_in_str++;
+						while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i])) && !number_error)
+						{
+							if(is_hexadecimal(source_string[i]))
+							{
+								buffer_str += source_string[i];
+								i++;
+								position_in_str++;
+							}
+							else
+							{
+								buffer_str += source_string[i];
+								number_error = 2;
+							}
+						}
 					}
-					else if(is_letter(source_string[i]))
+					else if(is_digit(source_string[i]))
 					{
+						while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i])) && !number_error)
+						{
+							if(is_octal(source_string[i]))
+							{
+								buffer_str += source_string[i];
+								i++;
+								position_in_str++;
+							}
+							else
+							{
+								buffer_str += source_string[i];
+								number_error = 3;
+							}
+						}
+					}
+					else
+					{
+						buffer_str += source_string[i];
 						number_error = 1;
 					}
-					else if(source_string[i] == '.')
+					
+				}
+				else
+				{
+					char has_point = 0;
+					while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i]) || source_string[i] == '.') && !number_error)
 					{
-						if(has_point)
+						if(is_digit(source_string[i]))
 						{
 							buffer_str += source_string[i];
 							i++;
 							position_in_str++;
-							number_error = 1;
 						}
-						else
+						else if(is_letter(source_string[i]))
 						{
+							number_error = 1;
 							buffer_str += source_string[i];
-							i++;
-							position_in_str++;
-							has_point = 1;
+						}
+						else if(source_string[i] == '.')
+						{
+							if(has_point)
+							{
+								buffer_str += source_string[i];
+								i++;
+								position_in_str++;
+								number_error = 1;
+							}
+							else
+							{
+								buffer_str += source_string[i];
+								i++;
+								position_in_str++;
+								has_point = 1;
+							}
 						}
 					}
 				}
-				i--;
-				position_in_str--;
+				if(!number_error)
+				{
+					i--;
+					position_in_str--;
+				}
 				break;
 			}
 		}
 		
-		//	cout<< buffer_str<< "     "<<find_in_tokens(buffer_str) <<endl;
 		switch(type_date)
 		{
 			case this_composite_operator:
@@ -367,25 +461,25 @@ int analysis_row(string source_string, int line_in_file)
 				if(buffer_str[0] == '"' && buffer_str[1] == '"')
 				{
 					if(str_error)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ERROR \" string not closed: token -> '" <<buffer_str_2 <<"'" << endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ERROR \" string not closed: Lexeme -> '" <<buffer_str_2 <<"'" << endl;
 					else if(options_compilier == 1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> string: token -> '" <<buffer_str_2 <<"'" << endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'string' : Lexeme -> '" <<buffer_str_2 <<"'" << endl;
 				}
 				else if(buffer_str == "''")
 				{
 					if(str_error)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ' not closed: token -> '" <<buffer_str_2 <<"'" <<endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ' not closed: Lexeme -> '" <<buffer_str_2 <<"'" <<endl;
 					else if(options_compilier == 1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> simbol: token -> '" <<buffer_str_2 <<"'" << endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'simbol' : Lexeme -> '" <<buffer_str_2 <<"'" << endl;
 				}
 				else if(buffer_str[0] == '.')
 				{
 					number_token = find_in_tokens(buffer_str);
 					if(number_token == -1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> unknown: token -> '" <<buffer_str<<"'" << endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'unknown' : Lexeme -> '" <<buffer_str<<"'" << endl;
 					else if(options_compilier == 1)
 					{
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : token -> '" <<buffer_str<<"'" << endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
 					}
 				}
 					
@@ -393,10 +487,29 @@ int analysis_row(string source_string, int line_in_file)
 			}
 			case this_digit:
 			{
-				if(number_error)
-					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> error number: token -> '" <<buffer_str<<"'" << endl;
-				else if(options_compilier == 1)
-					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> number: token -> '" <<buffer_str<<"'" << endl;
+				switch(number_error)
+				{
+					case 1:
+					{
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ERROR the number contains the letter: Lexeme -> '" <<buffer_str<<"'" << endl;
+						break;
+					}
+					case 2:
+					{
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ERROR in hexadecimal number: Lexeme -> '" <<buffer_str<<"'" << endl;
+						break;
+					}
+					case 3:
+					{
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ERROR in octal number: Lexeme -> '" <<buffer_str<<"'" << endl;
+						break;
+					}
+					case 0:
+					{
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'number' : Lexeme -> '" <<buffer_str<<"'" << endl;
+						break;
+					}
+				}
 				break;
 			}
 			case this_letter:
@@ -405,10 +518,10 @@ int analysis_row(string source_string, int line_in_file)
 				{
 					number_token = find_in_tokens(buffer_str);
 					if(number_token == -1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> literal: token -> '" <<buffer_str<<"'" << endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'literal' : Lexeme -> '" <<buffer_str<<"'" << endl;
 					else
 					{
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : token -> '" <<buffer_str<<"'" << endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
 					}
 				}
 				break;
@@ -416,7 +529,7 @@ int analysis_row(string source_string, int line_in_file)
 			case this_literal:
 			{
 				if(options_compilier == 1)
-					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> Literal: token -> '" <<buffer_str<<"'" << endl;
+					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'literal' : Lexeme -> '" <<buffer_str<<"'" << endl;
 				break;
 			}
 			case this_operator: 
@@ -424,16 +537,23 @@ int analysis_row(string source_string, int line_in_file)
 				if(buffer_str == "//" )
 				{
 					if(options_compilier == 1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> comment: token -> '" <<buffer_str_2<<"'" << endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'comment' : Lexeme -> '" <<buffer_str_2<<"'" << endl;
+				}
+				else if(buffer_str == "/**/")
+				{
+					if(error_comment == 1)
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << ">ERROR the comment is not finished: Lexeme -> '" <<buffer_str_2<<"'" << endl;
+					else if(options_compilier == 1)
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'comment' : Lexeme -> '" <<buffer_str_2<<"'" << endl;
 				}
 				else
 				{
 					number_token = find_in_tokens(buffer_str);
 					if(number_token == -1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> unknown: token -> '" <<buffer_str<<"'" << endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'unknown' : Lexeme -> '" <<buffer_str<<"'" << endl;
 					else if(options_compilier == 1)
 					{
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : token -> '" <<buffer_str<<"'" << endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
 					}
 				}
 				break;
@@ -486,9 +606,75 @@ int main(int argc, char *argv[])
 }
 #else
 
-TEST_CASE("Gonna meet <public>", "First")
+TEST_CASE("find_token", "1")
 {
-       
+	string buffer;
+	buffer = "fn";
+	REQUIRE(find_in_tokens(buffer) == 0);
+	buffer = "-";
+	REQUIRE(find_in_tokens(buffer) == 22);
+	buffer = "3213";
+	REQUIRE(find_in_tokens(buffer) == -1);
+}
+
+TEST_CASE("equal_str", "2")
+{
+	string buffer, buffer_s;
+	char a[100];
+	buffer = "fn";
+	buffer_s = "fn"; 
+	strncpy(a, buffer_s.c_str(), sizeof(a) - 1);
+
+	REQUIRE(equal_str(buffer, a) == 1);
+	buffer = "-";
+	buffer_s = "fn";
+	strncpy(a, buffer_s.c_str(), sizeof(a) - 1);	
+	REQUIRE(equal_str(buffer, a) == 0);
+}
+
+TEST_CASE("is_letter", "3")
+{
+	char a;
+	a = '1';
+	REQUIRE(is_letter(a) == false);
+	a = 'a';
+	REQUIRE(is_letter(a) == true);
+}
+
+TEST_CASE("is_operator", "4")
+{
+	char a;
+	a = '1';
+	REQUIRE(is_operator(a) == false);
+	a = 'a';
+	REQUIRE(is_operator(a) == false);
+	a = '/';
+	REQUIRE(is_operator(a) == true);
+	a = ' ';
+	REQUIRE(is_operator(a) == false);
+}
+
+TEST_CASE("is_digit", "5")
+{
+	char a;
+	a = '1';
+	REQUIRE(is_digit(a) == true);
+	a = 'a';
+	REQUIRE(is_digit(a) == false);
+}
+
+TEST_CASE("type_char", "6")
+{
+	char a;
+	a = '+';
+	REQUIRE(type_char(a) == this_operator);
+	a = 'a';
+	REQUIRE(type_char(a) == this_letter);
+	a = '1';
+	REQUIRE(type_char(a) == this_digit);
+	a = '_';
+	REQUIRE(type_char(a) == this_literal);
+	a = '.';
+	REQUIRE(type_char(a) == this_composite_operator);
 }
 #endif
-
