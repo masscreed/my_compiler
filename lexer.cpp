@@ -677,4 +677,22 @@ TEST_CASE("type_char", "6")
 	a = '.';
 	REQUIRE(type_char(a) == this_composite_operator);
 }
+
+TEST_CASE("is_hexadecimal", "7")
+{
+	char a;
+	a = '0';
+	REQUIRE(is_hexadecimal(a) == true);
+	a = 'g';
+	REQUIRE(is_hexadecimal(a) == false);
+}
+
+TEST_CASE("is_octal", "7")
+{
+	char a;
+	a = '0';
+	REQUIRE(is_octal(a) == true);
+	a = '8';
+	REQUIRE(is_octal(a) == false);
+}
 #endif
