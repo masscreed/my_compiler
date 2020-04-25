@@ -2,12 +2,13 @@
 #include <fstream>
 #include <string>
 #include "lexer.h"
+//#define CATCH_CONFIG_MAIN 
 #include "catch.hpp"
 
 using namespace std;
 
 char options_compilier;
-//#define CATCH_CONFIG_MAIN 
+
 
 char equal_str(string s1, char s2[])
 {
@@ -487,16 +488,8 @@ int main(int argc, char *argv[])
 	else if(argc == 3)
 	{
 		string source_opoptions = argv[2];
-		cout << argv[1] << endl;
-		cout << argv[2] << endl;
-		cout << options_compilier << endl;
 		if( source_opoptions == "--dump-tokens")
-		{
-			cout << "312312" << endl;
-			options_compilier = 1;
-		}
-		cout << options_compilier << endl;
-			
+			options_compilier = 1;			
 	}
 	else
 	{
@@ -515,9 +508,7 @@ int main(int argc, char *argv[])
 	
 	while(getline(in_file, source_string))
 	{
-		source_string = source_string + read_char;	
 		analysis_row(source_string, line_in_file);
-		source_string = "";
 		line_in_file++;
 	}
 	return 0;
