@@ -7,12 +7,34 @@
 using namespace std;
 
 char options_compilier;
-
+//#define CATCH_CONFIG_MAIN 
 
 char equal_str(string s1, char s2[])
 {
 	int i;
 	int length_s1 = s1.length();
+	for(i = 0; s2[i] != '\0'; i++);
+	int length_s2 = i;
+	if(length_s2 == length_s1)
+	{
+		for(i = 0; i < length_s1; i++)
+		{
+			if(s1[i] != s2[i])
+				return 0;
+				
+		}
+	}
+	else
+		return 0;
+	return 1;
+}
+
+char equal_str_char(char s1[], char s2[])
+{
+	int i;
+	int length_s1;
+	for(i = 0; s1[i] != '\0'; i++);
+	length_s1 = i;
 	for(i = 0; s2[i] != '\0'; i++);
 	int length_s2 = i;
 	if(length_s2 == length_s1)
@@ -375,14 +397,14 @@ int analysis_row(string source_string, int line_in_file)
 				{
 					if(str_error)
 						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ERROR \" string not closed: token -> '" <<buffer_str_2 <<"'" << endl;
-					else
+					else if(options_compilier == 1)
 						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> string: token -> '" <<buffer_str_2 <<"'" << endl;
 				}
 				else if(buffer_str == "''")
 				{
 					if(str_error)
 						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ' not closed: token -> '" <<buffer_str_2 <<"'" <<endl;
-					else
+					else if(options_compilier == 1)
 						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> simbol: token -> '" <<buffer_str_2 <<"'" << endl;
 				}
 				else if(buffer_str[0] == '.')
@@ -390,7 +412,7 @@ int analysis_row(string source_string, int line_in_file)
 					number_token = find_in_tokens(buffer_str);
 					if(number_token == -1)
 						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> unknown: token -> '" <<buffer_str<<"'" << endl;
-					else
+					else if(options_compilier == 1)
 					{
 						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : token -> '" <<buffer_str<<"'" << endl;
 					}
@@ -402,36 +424,43 @@ int analysis_row(string source_string, int line_in_file)
 			{
 				if(number_error)
 					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> error number: token -> '" <<buffer_str<<"'" << endl;
-				else
+				else if(options_compilier == 1)
 					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> number: token -> '" <<buffer_str<<"'" << endl;
 				break;
 			}
 			case this_letter:
 			{
-				number_token = find_in_tokens(buffer_str);
-				if(number_token == -1)
-					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> literal: token -> '" <<buffer_str<<"'" << endl;
-				else
+				if(options_compilier == 1)
 				{
-					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : token -> '" <<buffer_str<<"'" << endl;
+					number_token = find_in_tokens(buffer_str);
+					if(number_token == -1)
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> literal: token -> '" <<buffer_str<<"'" << endl;
+					else
+					{
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : token -> '" <<buffer_str<<"'" << endl;
+					}
 				}
 				break;
 			}
 			case this_literal:
 			{
-				cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> Literal: token -> '" <<buffer_str<<"'" << endl;
+				if(options_compilier == 1)
+					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> Literal: token -> '" <<buffer_str<<"'" << endl;
 				break;
 			}
 			case this_operator: 
 			{
-				if(buffer_str == "//")
-					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> comment: token -> '" <<buffer_str_2<<"'" << endl;
+				if(buffer_str == "//" )
+				{
+					if(options_compilier == 1)
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> comment: token -> '" <<buffer_str_2<<"'" << endl;
+				}
 				else
 				{
 					number_token = find_in_tokens(buffer_str);
 					if(number_token == -1)
 						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> unknown: token -> '" <<buffer_str<<"'" << endl;
-					else
+					else if(options_compilier == 1)
 					{
 						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : token -> '" <<buffer_str<<"'" << endl;
 					}
@@ -446,14 +475,42 @@ int analysis_row(string source_string, int line_in_file)
 
 	return 0;
 }
-
+#ifndef CATCH_CONFIG_MAIN
 int main(int argc, char *argv[]) 
 {
-	string source_string;
-    ifstream in_file("test.rs");
-   
-	char read_char;
+	
 	options_compilier = 0;
+	if(argc == 2)
+	{
+		options_compilier = 0;
+	}
+	else if(argc == 3)
+	{
+		string source_opoptions = argv[2];
+		cout << argv[1] << endl;
+		cout << argv[2] << endl;
+		cout << options_compilier << endl;
+		if( source_opoptions == "--dump-tokens")
+		{
+			cout << "312312" << endl;
+			options_compilier = 1;
+		}
+		cout << options_compilier << endl;
+			
+	}
+	else
+	{
+		cout<< "invalid number of parameters "<< argc <<endl;
+		return 0;
+	}
+	string source_string;
+	ifstream in_file(argv[1]);
+	if(!in_file)
+	{
+		cout<< "File cannot be opened : "<< argv[1] <<endl;
+		return 0;
+	}
+	char read_char;
 	int line_in_file = 1;
 	
 	while(getline(in_file, source_string))
@@ -463,6 +520,13 @@ int main(int argc, char *argv[])
 		source_string = "";
 		line_in_file++;
 	}
-	
+	return 0;
 }
+#else
+
+TEST_CASE("Gonna meet <public>", "First")
+{
+       
+}
+#endif
 
