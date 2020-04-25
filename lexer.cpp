@@ -687,7 +687,7 @@ TEST_CASE("is_hexadecimal", "7")
 	REQUIRE(is_hexadecimal(a) == false);
 }
 
-TEST_CASE("is_octal", "7")
+TEST_CASE("is_octal", "8")
 {
 	char a;
 	a = '0';
