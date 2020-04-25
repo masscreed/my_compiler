@@ -1,6 +1,8 @@
 #include <iostream> 
 #include <fstream>
-#include <string>
+#include <string.h>
+#include <cctype>
+#include <regex>
 #include "lexer.h"
 //#define CATCH_CONFIG_MAIN 
 #include "catch.hpp"
@@ -12,50 +14,18 @@ char options_compilier;
 
 char equal_str(string s1, char s2[])
 {
-	int i;
-	int length_s1 = s1.length();
-	for(i = 0; s2[i] != '\0'; i++);
-	int length_s2 = i;
-	if(length_s2 == length_s1)
-	{
-		for(i = 0; i < length_s1; i++)
-		{
-			if(s1[i] != s2[i])
-				return 0;
-				
-		}
-	}
-	else
-		return 0;
-	return 1;
-}
+	string s2_1 = s2;
 
-char equal_str_char(char s1[], char s2[])
-{
-	int i;
-	int length_s1;
-	for(i = 0; s1[i] != '\0'; i++);
-	length_s1 = i;
-	for(i = 0; s2[i] != '\0'; i++);
-	int length_s2 = i;
-	if(length_s2 == length_s1)
-	{
-		for(i = 0; i < length_s1; i++)
-		{
-			if(s1[i] != s2[i])
-				return 0;
-				
-		}
-	}
-	else
-		return 0;
-	return 1;
+	if(s1 == s2_1)
+		return 1;
+	
+	return 0;
 }
 
 int find_in_tokens(string token)
 {
-	int i = 0, result = 0;
-	for(i = 0; i < 150 && !result; i++)
+	int i = 0, result = 0;		
+	for(i = 0; i < 150 && !result && (token_name[i][0] != '\0'); i++)
 	{
 		result = equal_str(token, token_name[i]);
 		if(result)
@@ -489,7 +459,9 @@ int main(int argc, char *argv[])
 	{
 		string source_opoptions = argv[2];
 		if( source_opoptions == "--dump-tokens")
-			options_compilier = 1;			
+		{
+			options_compilier = 1;
+		}	
 	}
 	else
 	{
@@ -503,7 +475,6 @@ int main(int argc, char *argv[])
 		cout<< "File cannot be opened : "<< argv[1] <<endl;
 		return 0;
 	}
-	char read_char;
 	int line_in_file = 1;
 	
 	while(getline(in_file, source_string))
