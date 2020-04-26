@@ -413,7 +413,8 @@ int analysis_row(string source_string, int line_in_file)
 				else
 				{
 					char has_point = 0;
-					while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i]) || source_string[i] == '.') && !number_error)
+					char ignored = 1;
+					while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i]) || source_string[i] == '.') && !number_error && ignored)
 					{
 						if(is_digit(source_string[i]))
 						{
@@ -425,6 +426,10 @@ int analysis_row(string source_string, int line_in_file)
 						{
 							number_error = 1;
 							buffer_str += source_string[i];
+						}
+						else if(i + 1 < str_length && source_string[i] == '.' && source_string[i+1] == '.')
+						{
+							ignored = 0;
 						}
 						else if(source_string[i] == '.')
 						{
@@ -506,7 +511,8 @@ int analysis_row(string source_string, int line_in_file)
 					}
 					case 0:
 					{
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'number' : Lexeme -> '" <<buffer_str<<"'" << endl;
+						if(options_compilier == 1)
+							cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'number' : Lexeme -> '" <<buffer_str<<"'" << endl;
 						break;
 					}
 				}
