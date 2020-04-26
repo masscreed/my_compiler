@@ -72,7 +72,8 @@ char token_class[][150] =
 	"Method in the structure",
 	"->",
 	"this structure",
-	"print"
+	"print",
+	"assert"
 };
 char token_name[][150] = 
 {
@@ -144,7 +145,8 @@ char token_name[][150] =
 	"impl",
 	"->",
 	"self",
-	"print"
+	"print",
+	"assert"
 };
 enum {
 	this_composite_operator = -1,
