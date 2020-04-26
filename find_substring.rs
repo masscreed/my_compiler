@@ -18,7 +18,7 @@ pub fn has_substring(search: &str, find: &str) -> bool {
             }
         }
         if found {
-            println!("Sub string found {}", i+1);
+            println!("Sub string found {}", i);
             return true;
         }
     }
