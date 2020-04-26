@@ -34,6 +34,18 @@ int find_in_tokens(string token)
 	return -1;
 }
 
+int find_in_exceptions(string token)
+{
+	int i = 0, result = 0;		
+	for(i = 0; i < 4 && !result; i++)
+	{
+		result = equal_str(token, exceptions[i]);
+		if(result)
+			return i;
+	}
+	return -1;
+}
+
 bool is_letter(char c)
 {
 	if( c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'|| c == '_')
@@ -520,14 +532,37 @@ int analysis_row(string source_string, int line_in_file)
 			}
 			case this_letter:
 			{
-				if(options_compilier == 1)
+				char is_exceptions = -1;
+				is_exceptions = find_in_exceptions(buffer_str);
+				if(is_exceptions == -1)
 				{
-					number_token = find_in_tokens(buffer_str);
-					if(number_token == -1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'literal' : Lexeme -> '" <<buffer_str<<"'" << endl;
+					if(options_compilier == 1)
+					{
+						number_token = find_in_tokens(buffer_str);
+						if(number_token == -1)
+							cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'literal' : Lexeme -> '" <<buffer_str<<"'" << endl;
+						else
+						{
+							cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
+						}
+					}
+				}
+				else
+				{
+					if(i + 1 < str_length && source_string[i + 1] == '!')
+					{
+						buffer_str += source_string[i + 1];
+						i++;
+						position_in_str++;
+						number_token = find_in_tokens(buffer_str);
+						if(options_compilier == 1)
+						{
+							cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
+						}
+					}
 					else
 					{
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
+						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << ">ERROR not found ! in name token-> '"<< exceptions[is_exceptions] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
 					}
 				}
 				break;

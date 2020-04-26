@@ -16,7 +16,7 @@ char token_class[][150] =
 	"unsigned int 64",
 	"unsigned int 128",
 	"literal",
-	"identifier",
+	"print",
 	"boolean",
 	"char",
 	"variable to change",
@@ -89,7 +89,7 @@ char token_name[][150] =
 	"u64",
 	"u128",
 	"let",
-	"println",
+	"println!",
 	"bool",
 	"char",
 	"mut",
@@ -97,7 +97,7 @@ char token_name[][150] =
 	":",
 	"''",
 	"\"\"",
-	"format",
+	"format!",
 	"+",
 	"-",
 	"*",
@@ -145,8 +145,16 @@ char token_name[][150] =
 	"impl",
 	"->",
 	"self",
+	"print!",
+	"assert!"
+};
+
+char exceptions[][10]
+{
 	"print",
-	"assert"
+	"assert",
+	"println",
+	"format"
 };
 enum {
 	this_composite_operator = -1,
