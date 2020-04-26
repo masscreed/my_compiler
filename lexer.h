@@ -28,7 +28,7 @@ char token_class[][150] =
 	"plus",
 	"minus",
 	"multiply",
-	"/",
+	"divide",
 	"%",
 	">",
 	"<",
@@ -44,9 +44,9 @@ char token_class[][150] =
 	"^",
 	"<<",
 	">>",
-	"if",
-	"else",
-	"for",
+	"keyword If",
+	"keyword Else",
+	"cycle For",
 	"semi",
 	"l_brace",
 	"r_brace",
@@ -54,15 +54,15 @@ char token_class[][150] =
 	"]",
 	"l_paren",
 	"r_paren",
-	"match",
+	"keyword match",
 	"in",
 	"..",
-	"while",
-	"break",
-	"return",
-	"f64",
-	"f32",
-	"f128",
+	"cycle while",
+	"keyword break",
+	"keyword Return",
+	"float 64",
+	"float 32",
+	"float 128",
 	"vec",
 	"loop",
 	"!",
@@ -71,7 +71,8 @@ char token_class[][150] =
 	"struct",
 	"Method in the structure",
 	"->",
-	"this structure"
+	"this structure",
+	"print"
 };
 char token_name[][150] = 
 {
@@ -142,7 +143,8 @@ char token_name[][150] =
 	"struct",
 	"impl",
 	"->",
-	"self"
+	"self",
+	"print"
 };
 enum {
 	this_composite_operator = -1,
