@@ -126,7 +126,7 @@ char type_char(const char c)
 
 int analysis_row(string source_string, int line_in_file)
 {
-	int str_length = source_string.length();
+	int str_length = source_string.length() - 1;
 	int position_in_str = 1, i;
 	int position_begin_word;
 	int number_token;
