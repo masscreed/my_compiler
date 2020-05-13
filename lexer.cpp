@@ -77,6 +77,13 @@ bool is_operator(char c)
 	return false;
 }
 
+void prinf_in_consol(int line, int position, string str)
+{
+	cout <<"Loc=<"<<line<< ":" << position << "> "<< str << endl;
+}
+
+
+
 bool is_digit(char c)
 {
 	if(c >= '0' && c <= '9')
@@ -175,12 +182,12 @@ int analysis_row(string source_string, int line_in_file)
 						buffer_str_2 += '"';
 					}
 				}
-				else if(source_string[i] == 39) // '''
+				else if(source_string[i] == '\'') // '''
 				{
 					buffer_str = "''";
 					
-					buffer_str_2 += 39;
-					if(i + 2 < str_length && source_string[i + 2] == 39)
+					buffer_str_2 += '\'';
+					if(i + 2 < str_length && source_string[i + 2] == '\'')
 					{
 						buffer_str_2 += source_string[i+1];
 						buffer_str_2 += source_string[i+2];
@@ -305,7 +312,7 @@ int analysis_row(string source_string, int line_in_file)
 						position_in_str++;
 						buffer_str = "-";
 						char has_point = 0;
-						while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i]) || source_string[i] == '.' ) && !number_error)
+						while(i < str_length && (is_digit_or_letter(source_string[i]) || source_string[i] == '.' ) && !number_error)
 						{
 							if(is_digit(source_string[i]))
 							{
@@ -348,7 +355,7 @@ int analysis_row(string source_string, int line_in_file)
 			}
 			case this_letter:
 			{
-				while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i])))
+				while(i < str_length && is_digit_or_letter(source_string[i]))
 				{
 					buffer_str += source_string[i];
 					i++;
@@ -480,25 +487,26 @@ int analysis_row(string source_string, int line_in_file)
 				if(buffer_str[0] == '"' && buffer_str[1] == '"')
 				{
 					if(str_error)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ERROR \" string not closed: Lexeme -> '" <<buffer_str_2 <<"'" << endl;
+						prinf_in_consol(line_in_file, position_begin_word,"ERROR \" string not closed: Lexeme -> '" + buffer_str_2 + "'");
 					else if(options_compilier == 1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'string' : Lexeme -> '" <<buffer_str_2 <<"'" << endl;
+						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'string' : Lexeme -> '" + buffer_str_2 + "'");
 				}
 				else if(buffer_str == "''")
 				{
 					if(str_error)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ' not closed: Lexeme -> '" <<buffer_str_2 <<"'" <<endl;
+						prinf_in_consol(line_in_file, position_begin_word, " not closed: Lexeme -> '" + buffer_str_2 + "'");
 					else if(options_compilier == 1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'simbol' : Lexeme -> '" <<buffer_str_2 <<"'" << endl;
+						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'simbol' : Lexeme -> '" + buffer_str_2 + "'");
 				}
 				else if(buffer_str[0] == '.')
 				{
 					number_token = find_in_tokens(buffer_str);
 					if(number_token == -1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'unknown' : Lexeme -> '" <<buffer_str<<"'" << endl;
+						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'unknown' : Lexeme -> '" + buffer_str + "'");
 					else if(options_compilier == 1)
 					{
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
+						string buf =  token_class[number_token];
+						prinf_in_consol(line_in_file, position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
 					}
 				}
 					
@@ -510,23 +518,23 @@ int analysis_row(string source_string, int line_in_file)
 				{
 					case 1:
 					{
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ERROR the number contains the letter: Lexeme -> '" <<buffer_str<<"'" << endl;
+						prinf_in_consol(line_in_file, position_begin_word, " ERROR the number contains the letter: Lexeme -> '" + buffer_str + "'");
 						break;
 					}
 					case 2:
 					{
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ERROR in hexadecimal number: Lexeme -> '" <<buffer_str<<"'" << endl;
+						prinf_in_consol(line_in_file, position_begin_word, " ERROR in hexadecimal number: Lexeme -> '" + buffer_str + "'");
 						break;
 					}
 					case 3:
 					{
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> ERROR in octal number: Lexeme -> '" <<buffer_str<<"'" << endl;
+						prinf_in_consol(line_in_file, position_begin_word, " ERROR in octal number: Lexeme -> '" + buffer_str + "'");
 						break;
 					}
 					case 0:
 					{
 						if(options_compilier == 1)
-							cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'number' : Lexeme -> '" <<buffer_str<<"'" << endl;
+							prinf_in_consol(line_in_file, position_begin_word, " name token-> 'number' : Lexeme -> '" + buffer_str + "'");
 						break;
 					}
 				}
@@ -534,7 +542,7 @@ int analysis_row(string source_string, int line_in_file)
 			}
 			case this_letter:
 			{
-				char is_exceptions = -1;
+				int is_exceptions = -1;
 				is_exceptions = find_in_exceptions(buffer_str);
 				if(is_exceptions == -1)
 				{
@@ -542,29 +550,31 @@ int analysis_row(string source_string, int line_in_file)
 					{
 						number_token = find_in_tokens(buffer_str);
 						if(number_token == -1)
-							cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'literal' : Lexeme -> '" <<buffer_str<<"'" << endl;
+							prinf_in_consol(line_in_file, position_begin_word, " name token-> 'literal' : Lexeme -> '" + buffer_str + "'");
 						else
 						{
-							cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
+							string buf = token_class[number_token];
+							prinf_in_consol(line_in_file, position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
 						}
 					}
 				}
 				else
 				{
+					string buf;
 					if(i + 1 < str_length && source_string[i + 1] == '!')
 					{
 						buffer_str += source_string[i + 1];
 						i++;
 						position_in_str++;
 						number_token = find_in_tokens(buffer_str);
+						buf = token_class[number_token];
 						if(options_compilier == 1)
-						{
-							cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
-						}
+							prinf_in_consol(line_in_file, position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
 					}
 					else
 					{
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << ">ERROR not found ! in name token-> '"<< exceptions[is_exceptions] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
+						buf = exceptions[is_exceptions];
+						prinf_in_consol(line_in_file, position_begin_word, " ERROR not found ! in name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
 					}
 				}
 				break;
@@ -572,7 +582,7 @@ int analysis_row(string source_string, int line_in_file)
 			case this_literal:
 			{
 				if(options_compilier == 1)
-					cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'literal' : Lexeme -> '" <<buffer_str<<"'" << endl;
+					prinf_in_consol(line_in_file, position_begin_word, " name token-> 'literal' : Lexeme -> '" + buffer_str + "'");
 				break;
 			}
 			case this_operator: 
@@ -580,23 +590,24 @@ int analysis_row(string source_string, int line_in_file)
 				if(buffer_str == "//" )
 				{
 					if(options_compilier == 1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'comment' : Lexeme -> '" <<buffer_str_2<<"'" << endl;
+						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'comment' : Lexeme -> '" + buffer_str_2 + "'");
 				}
 				else if(buffer_str == "/**/")
 				{
 					if(error_comment == 1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << ">ERROR the comment is not finished: Lexeme -> '" <<buffer_str_2<<"'" << endl;
+						prinf_in_consol(line_in_file, position_begin_word, " ERROR the comment is not finished: Lexeme -> '"  + buffer_str_2 + "'");
 					else if(options_compilier == 1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'comment' : Lexeme -> '" <<buffer_str_2<<"'" << endl;
+						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'comment' : Lexeme -> '" + buffer_str_2 + "'");
 				}
 				else
 				{
 					number_token = find_in_tokens(buffer_str);
 					if(number_token == -1)
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> 'unknown' : Lexeme -> '" <<buffer_str<<"'" << endl;
+						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'unknown' : Lexeme -> '" + buffer_str + "'");
 					else if(options_compilier == 1)
 					{
-						cout <<"Loc=<"<<line_in_file<< ":" << position_begin_word << "> name token-> '"<< token_class[number_token] <<"' : Lexeme -> '" <<buffer_str<<"'" << endl;
+						string buf = token_class[number_token];
+						prinf_in_consol(line_in_file, position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
 					}
 				}
 				break;
@@ -642,7 +653,10 @@ int main(int argc, char *argv[])
 	
 	while(getline(in_file, source_string))
 	{
-		analysis_row(source_string, line_in_file);
+		if(source_string.length() > 1)
+			analysis_row(source_string, line_in_file);
+		else if(options_compilier == 1)
+			prinf_in_consol(line_in_file, 1, "name token-> '\\n'");
 		line_in_file++;
 	}
 	return 0;
