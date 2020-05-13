@@ -48,7 +48,14 @@ int find_in_exceptions(string token)
 
 bool is_letter(char c)
 {
-	if( c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'|| c == '_')
+	if( c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
+		return true;
+	return false;
+}
+
+bool is_letter_or_underscores(char c)
+{
+	if( is_letter( c) || c == '_')
 		return true;
 	return false;
 }
@@ -77,9 +84,14 @@ bool is_digit(char c)
 	return false;
 }
 
+bool is_digit_or_letter(char c)
+{
+	return (is_digit(c) || is_letter(c));
+}
+
 bool is_hexadecimal(char c)
 {
-	if(c >= '0' && c <= '9' || c >= 'a' && c <= 'f')
+	if(is_digit(c) || c >= 'a' && c <= 'f')
 		return true;
 	return false;
 }
@@ -93,23 +105,13 @@ bool is_octal(char c)
 
 char type_char(const char c)
   {
-	if( ('+' == c) || ('-' == c) ||
-		('*' == c) || ('/' == c) ||
-		('^' == c) || ('<' == c) ||
-		('>' == c) || ('=' == c) ||
-		(',' == c) || ('!' == c) ||
-		('(' == c) || (')' == c) ||
-		('[' == c) || (']' == c) ||
-		('{' == c) || ('}' == c) ||
-		('%' == c) || (':' == c) ||
-		('?' == c) || ('&' == c) ||
-		('|' == c) || (';' == c))
+	if(is_operator(c))
 		return this_operator;
-	else if( c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z')
+	else if( is_letter(c))
 		return this_letter;
 	else if( c == '_')
 		return this_literal;
-	else if(c >= '0' && c <= '9')
+	else if(is_digit(c))
 		return this_digit;
 	
 	return this_composite_operator;
@@ -361,7 +363,7 @@ int analysis_row(string source_string, int line_in_file)
 				buffer_str += source_string[i];
 				i++;
 				position_in_str++;
-				while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i])))
+				while(i < str_length && is_digit_or_letter(source_string[i]))
 				{
 					buffer_str += source_string[i];
 					i++;
@@ -373,7 +375,7 @@ int analysis_row(string source_string, int line_in_file)
 			}
 			case this_digit:
 			{	
-				if(i + 1 < str_length && source_string[i] == '0' && (is_digit(source_string[i+1]) || is_letter(source_string[i+1])) )
+				if(i + 1 < str_length && source_string[i] == '0' && is_digit_or_letter(source_string[i + 1]) )
 				{
 					buffer_str += source_string[i];
 					i++;
@@ -383,7 +385,7 @@ int analysis_row(string source_string, int line_in_file)
 						buffer_str += source_string[i];
 						i++;
 						position_in_str++;
-						while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i])) && !number_error)
+						while(i < str_length && is_digit_or_letter(source_string[i]) && !number_error)
 						{
 							if(is_hexadecimal(source_string[i]))
 							{
@@ -400,7 +402,7 @@ int analysis_row(string source_string, int line_in_file)
 					}
 					else if(is_digit(source_string[i]))
 					{
-						while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i])) && !number_error)
+						while(i < str_length && is_digit_or_letter(source_string[i]) && !number_error)
 						{
 							if(is_octal(source_string[i]))
 							{
@@ -426,7 +428,7 @@ int analysis_row(string source_string, int line_in_file)
 				{
 					char has_point = 0;
 					char ignored = 1;
-					while(i < str_length && (is_digit(source_string[i]) || is_letter(source_string[i]) || source_string[i] == '.') && !number_error && ignored)
+					while(i < str_length && is_digit_or_letter(source_string[i]) || source_string[i] == '.' && !number_error && ignored)
 					{
 						if(is_digit(source_string[i]))
 						{
