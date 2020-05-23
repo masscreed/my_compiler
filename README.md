@@ -2,9 +2,9 @@
 g++ -Wall -o lexer lexer.cpp
 
 # Запуск:
-./lexer <file> <options>
+./lexer "file" "options"
 или
-./lexer <file>
+./lexer "file"
 
 # Для запуска тестов необходимо в lexer.cpp раскоментировать строчку 7
 //#define CATCH_CONFIG_MAIN
