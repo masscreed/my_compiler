@@ -1,13 +1,4 @@
-#include <iostream> 
-#include <fstream>
-#include <string.h>
-#include <cctype>
-#include <regex>
 #include "lexer.h"
-//#define CATCH_CONFIG_MAIN 
-#include "catch.hpp"
-
-using namespace std;
 
 char options_compilier;
 
@@ -20,18 +11,6 @@ char equal_str(string s1, char s2[])
 		return 1;
 	
 	return 0;
-}
-
-int find_in_tokens(string token)
-{
-	int i = 0, result = 0;		
-	for(i = 0; i < 150 && !result && (token_name[i][0] != '\0'); i++)
-	{
-		result = equal_str(token, token_name[i]);
-		if(result)
-			return i;
-	}
-	return -1;
 }
 
 int find_in_exceptions(string token)
@@ -110,7 +89,7 @@ bool is_octal(char c)
 	return false;
 }
 
-char type_char(const char c)
+char get_type_char(const char c)
   {
 	if(is_operator(c))
 		return this_operator;
@@ -124,7 +103,7 @@ char type_char(const char c)
 	return this_composite_operator;
   }
 
-int analysis_row(string source_string, int line_in_file)
+int analysis_row(string source_string, token Lexer)
 {
 	int str_length = source_string.length() - 1;
 	int position_in_str = 1, i;
@@ -156,7 +135,7 @@ int analysis_row(string source_string, int line_in_file)
 		buffer_str_2 = "";
 		position_begin_word = position_in_str;
 		number_token = -1; 
-		type_date = type_char(source_string[i]);
+		type_date = get_type_char(source_string[i]);
 		switch(type_date)
 		{
 			case this_composite_operator: 
@@ -487,26 +466,27 @@ int analysis_row(string source_string, int line_in_file)
 				if(buffer_str[0] == '"' && buffer_str[1] == '"')
 				{
 					if(str_error)
-						prinf_in_consol(line_in_file, position_begin_word,"ERROR \" string not closed: Lexeme -> '" + buffer_str_2 + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word,"ERROR \" string not closed: Lexeme -> '" + buffer_str_2 + "'");
 					else if(options_compilier == 1)
-						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'string' : Lexeme -> '" + buffer_str_2 + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> 'string' : Lexeme -> '" + buffer_str_2 + "'");
 				}
 				else if(buffer_str == "''")
 				{
 					if(str_error)
-						prinf_in_consol(line_in_file, position_begin_word, " not closed: Lexeme -> '" + buffer_str_2 + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " not closed: Lexeme -> '" + buffer_str_2 + "'");
 					else if(options_compilier == 1)
-						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'simbol' : Lexeme -> '" + buffer_str_2 + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> 'simbol' : Lexeme -> '" + buffer_str_2 + "'");
 				}
 				else if(buffer_str[0] == '.')
 				{
-					number_token = find_in_tokens(buffer_str);
+					Lexer.set_token_class(buffer_str);
+					number_token = Lexer.get_token_class();
 					if(number_token == -1)
-						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'unknown' : Lexeme -> '" + buffer_str + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> 'unknown' : Lexeme -> '" + buffer_str + "'");
 					else if(options_compilier == 1)
 					{
 						string buf =  token_class[number_token];
-						prinf_in_consol(line_in_file, position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
 					}
 				}
 					
@@ -518,23 +498,23 @@ int analysis_row(string source_string, int line_in_file)
 				{
 					case 1:
 					{
-						prinf_in_consol(line_in_file, position_begin_word, " ERROR the number contains the letter: Lexeme -> '" + buffer_str + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " ERROR the number contains the letter: Lexeme -> '" + buffer_str + "'");
 						break;
 					}
 					case 2:
 					{
-						prinf_in_consol(line_in_file, position_begin_word, " ERROR in hexadecimal number: Lexeme -> '" + buffer_str + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " ERROR in hexadecimal number: Lexeme -> '" + buffer_str + "'");
 						break;
 					}
 					case 3:
 					{
-						prinf_in_consol(line_in_file, position_begin_word, " ERROR in octal number: Lexeme -> '" + buffer_str + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " ERROR in octal number: Lexeme -> '" + buffer_str + "'");
 						break;
 					}
 					case 0:
 					{
 						if(options_compilier == 1)
-							prinf_in_consol(line_in_file, position_begin_word, " name token-> 'number' : Lexeme -> '" + buffer_str + "'");
+							prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> 'number' : Lexeme -> '" + buffer_str + "'");
 						break;
 					}
 				}
@@ -548,13 +528,14 @@ int analysis_row(string source_string, int line_in_file)
 				{
 					if(options_compilier == 1)
 					{
-						number_token = find_in_tokens(buffer_str);
+						Lexer.set_token_class(buffer_str);
+						number_token = Lexer.get_token_class();
 						if(number_token == -1)
-							prinf_in_consol(line_in_file, position_begin_word, " name token-> 'literal' : Lexeme -> '" + buffer_str + "'");
+							prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> 'literal' : Lexeme -> '" + buffer_str + "'");
 						else
 						{
 							string buf = token_class[number_token];
-							prinf_in_consol(line_in_file, position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
+							prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
 						}
 					}
 				}
@@ -566,15 +547,16 @@ int analysis_row(string source_string, int line_in_file)
 						buffer_str += source_string[i + 1];
 						i++;
 						position_in_str++;
-						number_token = find_in_tokens(buffer_str);
+						Lexer.set_token_class(buffer_str);
+						number_token = Lexer.get_token_class();
 						buf = token_class[number_token];
 						if(options_compilier == 1)
-							prinf_in_consol(line_in_file, position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
+							prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
 					}
 					else
 					{
 						buf = exceptions[is_exceptions];
-						prinf_in_consol(line_in_file, position_begin_word, " ERROR not found ! in name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " ERROR not found ! in name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
 					}
 				}
 				break;
@@ -582,7 +564,7 @@ int analysis_row(string source_string, int line_in_file)
 			case this_literal:
 			{
 				if(options_compilier == 1)
-					prinf_in_consol(line_in_file, position_begin_word, " name token-> 'literal' : Lexeme -> '" + buffer_str + "'");
+					prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> 'literal' : Lexeme -> '" + buffer_str + "'");
 				break;
 			}
 			case this_operator: 
@@ -590,24 +572,25 @@ int analysis_row(string source_string, int line_in_file)
 				if(buffer_str == "//" )
 				{
 					if(options_compilier == 1)
-						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'comment' : Lexeme -> '" + buffer_str_2 + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> 'comment' : Lexeme -> '" + buffer_str_2 + "'");
 				}
 				else if(buffer_str == "/**/")
 				{
 					if(error_comment == 1)
-						prinf_in_consol(line_in_file, position_begin_word, " ERROR the comment is not finished: Lexeme -> '"  + buffer_str_2 + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " ERROR the comment is not finished: Lexeme -> '"  + buffer_str_2 + "'");
 					else if(options_compilier == 1)
-						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'comment' : Lexeme -> '" + buffer_str_2 + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> 'comment' : Lexeme -> '" + buffer_str_2 + "'");
 				}
 				else
 				{
-					number_token = find_in_tokens(buffer_str);
+					Lexer.set_token_class(buffer_str);
+					number_token = Lexer.get_token_class();
 					if(number_token == -1)
-						prinf_in_consol(line_in_file, position_begin_word, " name token-> 'unknown' : Lexeme -> '" + buffer_str + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> 'unknown' : Lexeme -> '" + buffer_str + "'");
 					else if(options_compilier == 1)
 					{
 						string buf = token_class[number_token];
-						prinf_in_consol(line_in_file, position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
+						prinf_in_consol(Lexer.get_line(), position_begin_word, " name token-> '" + buf + "' : Lexeme -> '" + buffer_str + "'");
 					}
 				}
 				break;
@@ -649,15 +632,16 @@ int main(int argc, char *argv[])
 		cout<< "File cannot be opened : "<< argv[1] <<endl;
 		return 0;
 	}
-	int line_in_file = 1;
+	token Lexer;
+	Lexer.set_line(1);
 	
 	while(getline(in_file, source_string))
 	{
 		if(source_string.length() > 1)
-			analysis_row(source_string, line_in_file);
+			analysis_row(source_string, Lexer);
 		else if(options_compilier == 1)
-			prinf_in_consol(line_in_file, 1, "name token-> '\\n'");
-		line_in_file++;
+			prinf_in_consol(Lexer.get_line(), 1, "name token-> '\\n'");
+		Lexer.set_line(Lexer.get_line() + 1);
 	}
 	return 0;
 }
@@ -667,11 +651,11 @@ TEST_CASE("find_token", "1")
 {
 	string buffer;
 	buffer = "fn";
-	REQUIRE(find_in_tokens(buffer) == 0);
+	REQUIRE(Lexer.set_token_class(buffer) == 0);
 	buffer = "-";
-	REQUIRE(find_in_tokens(buffer) == 22);
+	REQUIRE(Lexer.set_token_class(buffer) == 22);
 	buffer = "3213";
-	REQUIRE(find_in_tokens(buffer) == -1);
+	REQUIRE(Lexer.set_token_class(buffer) == -1);
 }
 
 TEST_CASE("equal_str", "2")
@@ -720,19 +704,19 @@ TEST_CASE("is_digit", "5")
 	REQUIRE(is_digit(a) == false);
 }
 
-TEST_CASE("type_char", "6")
+TEST_CASE("get_type_char", "6")
 {
 	char a;
 	a = '+';
-	REQUIRE(type_char(a) == this_operator);
+	REQUIRE(get_type_char(a) == this_operator);
 	a = 'a';
-	REQUIRE(type_char(a) == this_letter);
+	REQUIRE(get_type_char(a) == this_letter);
 	a = '1';
-	REQUIRE(type_char(a) == this_digit);
+	REQUIRE(get_type_char(a) == this_digit);
 	a = '_';
-	REQUIRE(type_char(a) == this_literal);
+	REQUIRE(get_type_char(a) == this_literal);
 	a = '.';
-	REQUIRE(type_char(a) == this_composite_operator);
+	REQUIRE(get_type_char(a) == this_composite_operator);
 }
 
 TEST_CASE("is_hexadecimal", "7")

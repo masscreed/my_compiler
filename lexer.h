@@ -1,167 +1,79 @@
 #ifndef LEXER
 #define LEXER
 
-#define max_line_in_file 512
-char token_class[][150] = 
-{
-	"function",
-	"int 8",
-	"int 16",
-	"int 32",
-	"int 64",
-	"int 128",
-	"unsigned int 8",
-	"unsigned int 16",
-	"unsigned int 32",
-	"unsigned int 64",
-	"unsigned int 128",
-	"literal",
-	"print",
-	"boolean",
-	"char",
-	"variable to change",
-	"::",
-	":",
-	"''",
-	"\"\"",
-	"format",
-	"plus",
-	"minus",
-	"multiply",
-	"divide",
-	"%",
-	">",
-	"<",
-	">=",
-	"<=",
-	"==",
-	"=",
-	"&&",
-	"&",
-	"||",
-	"|",
-	"!",
-	"^",
-	"<<",
-	">>",
-	"keyword If",
-	"keyword Else",
-	"cycle For",
-	"semi",
-	"l_brace",
-	"r_brace",
-	"[",
-	"]",
-	"l_paren",
-	"r_paren",
-	"keyword match",
-	"in",
-	"..",
-	"cycle while",
-	"keyword break",
-	"keyword Return",
-	"float 64",
-	"float 32",
-	"float 128",
-	"vec",
-	"loop",
-	"!",
-	",",
-	".",
-	"struct",
-	"Method in the structure",
-	"->",
-	"this structure",
-	"print",
-	"assert"
-};
-char token_name[][150] = 
-{
-	"fn",
-	"i8",
-	"i16",
-	"i32",
-	"i64",
-	"i128",
-	"u8",
-	"u16",
-	"u32",
-	"u64",
-	"u128",
-	"let",
-	"println!",
-	"bool",
-	"char",
-	"mut",
-	"::",
-	":",
-	"''",
-	"\"\"",
-	"format!",
-	"+",
-	"-",
-	"*",
-	"/",
-	"%",
-	">",
-	"<",
-	">=",
-	"<=",
-	"==",
-	"=",
-	"&&",
-	"&",
-	"||",
-	"|",
-	"!",
-	"^",
-	"<<",
-	">>",
-	"if",
-	"else",
-	"for",
-	";",
-	"{",
-	"}",
-	"[",
-	"]",
-	"(",
-	")",
-	"match",
-	"in",
-	"..",
-	"while",
-	"break",
-	"return",
-	"f64",
-	"f32",
-	"f128",
-	"vec",
-	"loop",
-	"!",
-	",",
-	".",
-	"struct",
-	"impl",
-	"->",
-	"self",
-	"print!",
-	"assert!"
-};
+#include <iostream> 
+#include <fstream>
+#include <string.h>
+#include <cctype>
+#include <regex>
+//#define CATCH_CONFIG_MAIN 
+#include "catch.hpp"
+#include "token.hpp"
+using namespace std;
 
-char exceptions[][10]
-{
-	"print",
-	"assert",
-	"println",
-	"format"
-};
+char equal_str(string s1, char s2[]);
+int find_in_exceptions(string token);
+bool is_letter(char c);
+bool is_letter_or_underscores(char c);
+bool is_operator(char c);
+bool is_digit(char c);
+bool is_digit_or_letter(char c);
+bool is_hexadecimal(char c);
+bool is_octal(char c);
+char get_type_char(const char c);
+
 enum {
 	this_composite_operator = -1,
 	this_operator = 0,
 	this_letter = 1,
 	this_literal= 2,
 	this_digit = 3
+};
+
+class token {
+	string Lexeme;
+	int line, position, TokenClass;
+public:
+	token(){
+		TokenClass = -1;
+		Lexeme = "";
+		line = -1;
+		position = -1;
+	}
+
+	void set_position(int pos){
+		position = pos;
+	}
+
+	int get_position(){
+		return position;
+	}
+
+	void set_line(int num){
+		line = num;
+	}
+
+	int get_line(){
+		return line;
+	}
+
+	void set_token_class(string tok_name){		
+		for(int i = 0; token_name[i][0] != '\0'; i++)
+		{
+			if(equal_str(tok_name, token_name[i]))
+			{
+				TokenClass = i;
+				break;
+			}
+				
+		}
+	}
+	int get_token_class(){		
+		return TokenClass;
+	}
+
+
+
 };
 
 #endif
